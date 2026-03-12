@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ title | default('SDTS Documentation') }}{% endblock %}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #24292f;
+      background: #fff;
+    }
+    .layout {
+      display: flex;
+      min-height: 100vh;
+      background: #fff;
+      --nav-left-w: 260px;
+      --nav-right-w: 220px;
+    }
+    /* Sleek rounded scrollbars */
+    .nav-left, .content-center, .nav-right, body {
+      scrollbar-width: thin;
+      scrollbar-color: #8c959f #eaeef2;
+    }
+    .nav-left::-webkit-scrollbar, .content-center::-webkit-scrollbar, .nav-right::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .nav-left::-webkit-scrollbar-track, .content-center::-webkit-scrollbar-track, .nav-right::-webkit-scrollbar-track {
+      background: #eaeef2;
+      border-radius: 4px;
+    }
+    .nav-left::-webkit-scrollbar-thumb, .content-center::-webkit-scrollbar-thumb, .nav-right::-webkit-scrollbar-thumb {
+      background: #8c959f;
+      border-radius: 4px;
+    }
+    .nav-left::-webkit-scrollbar-thumb:hover, .content-center::-webkit-scrollbar-thumb:hover, .nav-right::-webkit-scrollbar-thumb:hover {
+      background: #6e7781;
+    }
+    /* Left navigation */
+    .nav-left {
+      flex: 0 0 var(--nav-left-w);
+      width: var(--nav-left-w);
+      min-width: 180px;
+      max-width: 480px;
+      background: #fff;
+      color: #000;
+      padding: 1.25rem 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid #d0d7de;
+    }
+    .nav-left .brand {
+      padding: 0 1.25rem 0.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #d0d7de;
+      margin-bottom: 0.75rem;
+      color: #000;
+    }
+    .nav-left a {
+      display: block;
+      padding: 0.4rem 1.25rem;
+      color: #000;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .nav-left a:hover { background: #f6f8fa; color: #000; }
+    .nav-left a.active { background: #f0f0f0; color: #000; font-weight: 500; }
+    .sidebar-nav { padding: 0 0.5rem; }
+    .sidebar-nav ul { list-style: none; padding-left: 1rem; margin: 0.25rem 0; }
+    .sidebar-nav > ul { padding-left: 0; }
+    .sidebar-nav li { margin: 0.35rem 0; font-size: 0.9rem; color: #000; }
+    .sidebar-nav li strong { color: #24292f; font-weight: 600; }
+    .sidebar-nav a { display: inline; padding: 0.2rem 0; }
+    /* Collapsible tree */
+    .sidebar-nav .nav-parent { position: relative; }
+    .sidebar-nav .nav-parent > .nav-toggle {
+      cursor: pointer;
+      user-select: none;
+      padding: 0.2rem 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .sidebar-nav .nav-parent > .nav-toggle:hover { color: #000; }
+    .sidebar-nav .nav-caret {
+      display: inline-block;
+      width: 1em;
+      font-size: 0.65em;
+      transition: transform 0.15s ease;
+      flex-shrink: 0;
+    }
+    .sidebar-nav .nav-parent:not(.collapsed) > .nav-toggle .nav-caret { transform: rotate(0deg); }
+    .sidebar-nav .nav-parent.collapsed > .nav-toggle .nav-caret { transform: rotate(-90deg); }
+    .sidebar-nav .nav-parent.collapsed > ul { display: none; }
+    /* Splitters (QSplitter-like) */
+    .layout-splitter {
+      flex: 0 0 6px;
+      width: 6px;
+      min-width: 6px;
+      cursor: col-resize;
+      background: #d0d7de;
+      position: relative;
+      user-select: none;
+    }
+    .layout-splitter:hover { background: #8c959f; }
+    .layout-splitter:active { background: #6e7781; }
+    .layout-splitter::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; left: 0; right: 0;
+    }
+    /* Central content */
+    .content-center {
+      flex: 1;
+      min-width: 280px;
+      padding: 2rem 2.5rem 3rem;
+      background: #fff;
+      border-right: 1px solid #d0d7de;
+    }
+    .content-center h1 { font-size: 1.85rem; margin-top: 0; border-bottom: 1px solid #d0d7de; padding-bottom: 0.5rem; color: #24292f; font-weight: 600; }
+    .content-center h2 { font-size: 1.35rem; margin-top: 1.75rem; color: #24292f; font-weight: 600; }
+    .content-center h3 { font-size: 1.15rem; margin-top: 1.25rem; color: #24292f; font-weight: 600; }
+    .content-center pre { background: #f6f8fa; color: #24292f; padding: 1rem; border: 1px solid #d0d7de; border-radius: 6px; overflow-x: auto; font-size: 0.875rem; font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+    .content-center code { background: #f6f8fa; color: #24292f; padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; border: 1px solid #d0d7de; }
+    .content-center pre code { background: none; padding: 0; border: none; }
+    .content-center ul, .content-center ol { padding-left: 1.5rem; color: #24292f; }
+    .content-center a { color: #0969da; }
+    .content-center a:hover { text-decoration: underline; }
+    .content-center p { color: #24292f; }
+    /* Right page navigation (TOC) */
+    .nav-right {
+      flex: 0 0 var(--nav-right-w);
+      width: var(--nav-right-w);
+      min-width: 160px;
+      max-width: 400px;
+      padding: 2rem 1rem 2rem 1.25rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      background: #fff;
+      border-left: 1px solid #d0d7de;
+    }
+    .nav-right .label { font-weight: 600; color: #24292f; margin-bottom: 0.75rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .nav-right ul { list-style: none; padding: 0; margin: 0; }
+    .nav-right li { margin: 0.25rem 0; }
+    .nav-right a { color: #0969da; text-decoration: none; display: block; padding: 0.2rem 0; }
+    .nav-right a:hover { text-decoration: underline; }
+    .nav-right .toc-h2 { padding-left: 0; }
+    .nav-right .toc-h3 { padding-left: 0.75rem; font-size: 0.85em; color: #57606a; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="nav-left" aria-label="Site navigation">
+      <div class="brand">SDTS Documentation</div>
+      <div class="sidebar-nav">
+        <ul>
+          <li class="nav-parent"><span class="nav-toggle"><span class="nav-caret" aria-hidden="true">&#9660;</span><strong>1. RF Board Bring up</strong></span>
+            <ul>
+              <li>1.1 <a href="{{ nav_links.get('home.html', 'home.html') }}"{% if current_page_key == 'home.html' %} class="active"{% endif %}>Home</a></li>
+              <li class="nav-parent"><span class="nav-toggle"><span class="nav-caret" aria-hidden="true">&#9660;</span><strong>1.2 Board Config</strong></span>
+                <ul>
+                  <li>1.2.1 <a href="{{ nav_links.get('band-management.html', 'band-management.html') }}"{% if current_page_key == 'band-management.html' %} class="active"{% endif %}>Band Management</a></li>
+                  <li class="nav-parent"><span class="nav-toggle"><span class="nav-caret" aria-hidden="true">&#9660;</span><strong>1.2.2 Board Configuration</strong></span>
+                    <ul>
+                      <li>1.2.2.2 <a href="{{ nav_links.get('device-setting.html', 'device-setting.html') }}"{% if current_page_key == 'device-setting.html' %} class="active"{% endif %}>Device Setting</a></li>
+                      <li>1.2.2.9 <a href="{{ nav_links.get('band-config.html', 'band-config.html') }}"{% if current_page_key == 'band-config.html' %} class="active"{% endif %}>Band Config</a></li>
+                      <li>1.2.2.10 <a href="{{ nav_links.get('cal-path-info.html', 'cal-path-info.html') }}"{% if current_page_key == 'cal-path-info.html' %} class="active"{% endif %}>Cal Path Info</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li class="nav-parent"><span class="nav-toggle"><span class="nav-caret" aria-hidden="true">&#9660;</span><strong>1.3 Test Assurance Process</strong></span>
+                <ul>
+                  <li>1.3.1 <a href="{{ nav_links.get('search-simulation.html', 'search-simulation.html') }}"{% if current_page_key == 'search-simulation.html' %} class="active"{% endif %}>Search Simulation</a></li>
+                  <li>1.3.2 <a href="{{ nav_links.get('test-checker-data.html', 'test-checker-data.html') }}"{% if current_page_key == 'test-checker-data.html' %} class="active"{% endif %}>Test Checker Data</a></li>
+                  <li>1.3.3 <a href="{{ nav_links.get('bcf-verification.html', 'bcf-verification.html') }}"{% if current_page_key == 'bcf-verification.html' %} class="active"{% endif %}>BCF Verification</a></li>
+                  <li>1.3.4 <a href="{{ nav_links.get('mipi-extractor.html', 'mipi-extractor.html') }}"{% if current_page_key == 'mipi-extractor.html' %} class="active"{% endif %}>MIPI Extractor</a></li>
+                  <li>1.3.5 <a href="{{ nav_links.get('dr-simulation.html', 'dr-simulation.html') }}"{% if current_page_key == 'dr-simulation.html' %} class="active"{% endif %}>DR Simulation</a></li>
+                </ul>
+              </li>
+              <li>1.4 <a href="{{ nav_links.get('build.html', 'build.html') }}"{% if current_page_key == 'build.html' %} class="active"{% endif %}>Build</a></li>
+              <li>1.5 <a href="{{ nav_links.get('settings.html', 'settings.html') }}"{% if current_page_key == 'settings.html' %} class="active"{% endif %}>Settings</a></li>
+              <li>1.6 <a href="{{ nav_links.get('rffe-config.html', 'rffe-config.html') }}"{% if current_page_key == 'rffe-config.html' %} class="active"{% endif %}>RFFE Config</a></li>
+              <li>1.7 <a href="{{ nav_links.get('reg-config.html', 'reg-config.html') }}"{% if current_page_key == 'reg-config.html' %} class="active"{% endif %}>Regy Config</a></li>
+            </ul>
+          </li>
+          <li>2. <a href="{{ nav_links.get('section2.html', 'section2.html') }}"{% if current_page_key == 'section2.html' %} class="active"{% endif %}>Reserved Section 2</a></li>
+          <li>3. <a href="{{ nav_links.get('section3.html', 'section3.html') }}"{% if current_page_key == 'section3.html' %} class="active"{% endif %}>Reserved Section 3</a></li>
+          <li>4. <a href="{{ nav_links.get('laboratory.html', 'laboratory.html') }}"{% if current_page_key == 'laboratory.html' %} class="active"{% endif %}>4. Laboratory</a></li>
+          <li>5. <a href="{{ nav_links.get('eutg.html', 'eutg.html') }}"{% if current_page_key == 'eutg.html' %} class="active"{% endif %}>5. EUTG</a></li>
+        </ul>
+      </div>
+    </nav>
+    <div class="layout-splitter" id="splitter-left" title="Drag to resize"></div>
+    <main class="content-center" role="main">
+      {% block content %}
+      {{ content | safe }}
+      {% endblock %}
+    </main>
+
+    <aside class="nav-right" aria-label="On this page">
+      {% if toc_entries %}
+      <div class="label">On this page</div>
+      <ul>
+        {% for entry in toc_entries %}
+        <li class="toc-h{{ entry.level }}">
+          <a href="#{{ entry.id }}">{{ entry.name }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="label">On this page</div>
+      <p style="color:#57606a;margin:0;">No headings in this page.</p>
+      {% endif %}
+    </aside>
+  </div>
+  <script>
+    document.querySelectorAll('.sidebar-nav .nav-parent').forEach(function(li) {
+      var toggle = li.querySelector('.nav-toggle');
+      if (toggle) {
+        toggle.addEventListener('click', function() { li.classList.toggle('collapsed'); });
+      }
+    });
+
+    (function() {
+      var layout = document.querySelector('.layout');
+      var leftSplitter = document.getElementById('splitter-left');
+      var rightSplitter = document.getElementById('splitter-right');
+
+      function px(val) { return parseInt(val, 10) || 0; }
+      function getLeftW() { return px(getComputedStyle(layout).getPropertyValue('--nav-left-w')); }
+      function getRightW() { return px(getComputedStyle(layout).getPropertyValue('--nav-right-w')); }
+
+      function setupSplitter(splitter, isLeft) {
+        var startX, startW;
+        splitter.addEventListener('mousedown', function(e) {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          startX = e.clientX;
+          startW = isLeft ? getLeftW() : getRightW();
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+          function onMove(e) {
+            var dx = e.clientX - startX;
+            var newW = isLeft ? startW + dx : startW - dx;
+            var minW = isLeft ? 180 : 160;
+            var maxW = isLeft ? 480 : 400;
+            newW = Math.min(maxW, Math.max(minW, newW));
+            layout.style.setProperty(isLeft ? '--nav-left-w' : '--nav-right-w', newW + 'px');
+          }
+          function onUp() {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+          }
+          document.addEventListener('mousemove', onMove);
+          document.addEventListener('mouseup', onUp);
+        });
+      }
+      setupSplitter(leftSplitter, true);
+      setupSplitter(rightSplitter, false);
+    })();
+  </script>
+</body>
+</html>
