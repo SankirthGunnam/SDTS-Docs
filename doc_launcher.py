@@ -111,11 +111,13 @@ class DocLauncherWindow(QMainWindow):
 
         # Bottom dock: web view for opened doc pages
         self._doc_view = QWebEngineView(self)
+        self._doc_view.setMinimumHeight(280)
         profile = QWebEngineProfile.defaultProfile()
         page = DocWebEnginePage(STATIC_DOCS, profile, self)
         self._doc_view.setPage(page)
         dock = QDockWidget("Documentation", self)
         dock.setObjectName("DocDock")
+        dock.setMinimumHeight(300)
         dock.setWidget(self._doc_view)
         dock.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea | Qt.DockWidgetArea.TopDockWidgetArea)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)

@@ -157,6 +157,16 @@
     .nav-right a:hover { text-decoration: underline; }
     .nav-right .toc-h2 { padding-left: 0; }
     .nav-right .toc-h3 { padding-left: 0.75rem; font-size: 0.85em; color: #57606a; }
+    /* Toggle left nav */
+    .nav-toggle-bar { display: flex; align-items: center; margin: -0.5rem 0 0.5rem 0; padding-bottom: 0.5rem; border-bottom: 1px solid #d0d7de; }
+    .nav-toggle-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; padding: 0; border: 1px solid #d0d7de; border-radius: 6px;
+      background: #fff; color: #24292f; font-size: 1.1rem; cursor: pointer;
+    }
+    .nav-toggle-btn:hover { background: #f6f8fa; border-color: #8c959f; }
+    .layout.nav-left-hidden .nav-left,
+    .layout.nav-left-hidden #splitter-left { display: none !important; }
   </style>
 </head>
 <body>
@@ -204,6 +214,9 @@
     </nav>
     <div class="layout-splitter" id="splitter-left" title="Drag to resize"></div>
     <main class="content-center" role="main">
+      <div class="nav-toggle-bar">
+        <button type="button" class="nav-toggle-btn" id="nav-toggle-btn" title="Hide sidebar" aria-label="Hide sidebar">&#9776;</button>
+      </div>
       {% block content %}
       {{ content | safe }}
       {% endblock %}
@@ -226,12 +239,36 @@
     </aside>
   </div>
   <script>
-    document.querySelectorAll('.sidebar-nav .nav-parent').forEach(function(li) {
-      var toggle = li.querySelector('.nav-toggle');
-      if (toggle) {
-        toggle.addEventListener('click', function() { li.classList.toggle('collapsed'); });
+    (function() {
+      var layout = document.querySelector('.layout');
+      var btn = document.getElementById('nav-toggle-btn');
+      if (layout && btn) {
+        var hidden = localStorage.getItem('sdts-nav-left-hidden') === '1';
+        if (hidden) layout.classList.add('nav-left-hidden');
+        function updateBtn() {
+          var isHidden = layout.classList.contains('nav-left-hidden');
+          btn.textContent = isHidden ? '\u2630' : '\u2630';
+          btn.title = isHidden ? 'Show sidebar' : 'Hide sidebar';
+          btn.setAttribute('aria-label', btn.title);
+          localStorage.setItem('sdts-nav-left-hidden', isHidden ? '1' : '0');
+        }
+        updateBtn();
+        btn.addEventListener('click', function() {
+          layout.classList.toggle('nav-left-hidden');
+          updateBtn();
+        });
       }
-    });
+    })();
+
+    var navParents = document.querySelectorAll('.sidebar-nav .nav-parent');
+    if (navParents && navParents.length) {
+      navParents.forEach(function(li) {
+        var toggle = li.querySelector('.nav-toggle');
+        if (toggle) {
+          toggle.addEventListener('click', function() { li.classList.toggle('collapsed'); });
+        }
+      });
+    }
 
     (function() {
       var layout = document.querySelector('.layout');
